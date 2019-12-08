@@ -1,2 +1,6 @@
+.DS_Store
+/models
 /.ipynb_checkpoints
+/data
+/pics
 .ipynb_checkpoint
