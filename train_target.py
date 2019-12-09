@@ -1,9 +1,10 @@
-import pandas as pd
-import numpy as np
 from tqdm import tqdm
 from collections import defaultdict
 import os
 import json
+
+composer = input('Composer: ')
+song_type = input('Song Type: ')
 
 def dict_note_index(time_notes, dict_index, i):
     for time, notes in time_notes.items():
@@ -63,14 +64,27 @@ with open('data/time_notes.json', 'r') as read_file:
     dict_index = defaultdict(int)
     dict_index['e'] = 0
     i = 1
-    with open('data/model_input.json', 'w') as to_write:
-        for line in tqdm(read_file):
-            song = json.loads(line)
-            song['time_notes'] = {int(k):v for k,v in song['time_notes'].items()}
-            dict_index, i = dict_note_index(song['time_notes'], dict_index, i)
-            lst_train, lst_target = input_target_seq(song['time_notes'])
-            lst_train_ind, lst_target_ind = notes_to_index(lst_train, lst_target, dict_index)
-            song['train'] = lst_train_ind
-            song['target'] = lst_target_ind
-            json.dump(song, to_write)
-            to_write.write('\n')
+    with open('data/{}{}_input.json'.format(composer,song_type), 'w') as input_write:
+        with open('data/{}{}_index.json'.format(composer, song_type), 'w') as index_write:
+            for line in tqdm(read_file):
+                song = json.loads(line)
+                if composer in song['composer']:
+                    if song_type is None:    
+                        song['time_notes'] = {int(k):v for k,v in song['time_notes'].items()}
+                        dict_index, i = dict_note_index(song['time_notes'], dict_index, i)
+                        lst_train, lst_target = input_target_seq(song['time_notes'])
+                        lst_train_ind, lst_target_ind = notes_to_index(lst_train, lst_target, dict_index)
+                        song['train'] = lst_train_ind
+                        song['target'] = lst_target_ind
+                    else:
+                        if song_type in song['title']:
+                            song['time_notes'] = {int(k):v for k,v in song['time_notes'].items()}
+                            dict_index, i = dict_note_index(song['time_notes'], dict_index, i)
+                            lst_train, lst_target = input_target_seq(song['time_notes'])
+                            lst_train_ind, lst_target_ind = notes_to_index(lst_train, lst_target, dict_index)
+                            song['train'] = lst_train_ind
+                            song['target'] = lst_target_ind
+                    json.dump(song, input_write)
+                    input_write.write('\n')
+            json.dump(dict_index, index_write)
+            index_write.write('\n')
